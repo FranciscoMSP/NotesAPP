@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NotesAPP</string>
+    <string name="save">Save</string>
+    <string name="back_icon">Back Icon</string>
 </resources>
