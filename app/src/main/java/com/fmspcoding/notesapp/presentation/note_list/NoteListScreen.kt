@@ -1,10 +1,7 @@
 package com.fmspcoding.notesapp.presentation.note_list
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyVerticalGrid
@@ -24,7 +21,6 @@ import androidx.navigation.NavController
 import com.fmspcoding.notesapp.presentation.Screen
 import com.fmspcoding.notesapp.presentation.note_list.components.NoteListItem
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteListScreen(
     navController: NavController,
@@ -35,17 +31,35 @@ fun NoteListScreen(
     Scaffold(
         content = {
             Box(modifier = Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    modifier = Modifier.fillMaxSize(),
-                    cells = GridCells.Fixed(2)
-                ) {
-                    items(state.notes) { note ->
-                        NoteListItem(
-                            note = note,
-                            onItemClick = {
-                                navController.navigate(Screen.NoteDetailScreen.route + "/${note.id}")
+                LazyColumn {
+                    item {
+                        StaggeredVerticalGrid(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            maxColumnWidth = 220.dp
+//                    cells = GridCells.Fixed(2),
+//                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+//                    verticalArrangement = Arrangement.spacedBy(8.dp),
+//                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+//                    items(state.notes) { note ->
+//                        NoteListItem(
+//                            note = note,
+//                            onItemClick = {
+//                                navController.navigate(Screen.NoteDetailScreen.route + "/${note.id}")
+//                            },
+//                        )
+//                    }
+
+                            state.notes.forEach { note ->
+                                NoteListItem(
+                                    note = note,
+                                    onItemClick = {
+                                        navController.navigate(Screen.NoteDetailScreen.route + "/${note.id}")
+                                    },
+                                )
                             }
-                        )
+                        }
                     }
                 }
                 if (state.error.isNotBlank()) {
@@ -67,7 +81,9 @@ fun NoteListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.NoteDetailScreen.route + "/${0}")
+                    navController.navigate(Screen.NoteDetailScreen.route + "/${0}") {
+                        popUpTo(Screen.NoteListScreen.route)
+                    }
                 },
                 backgroundColor = MaterialTheme.colors.primary,
                 contentColor = Color.White,

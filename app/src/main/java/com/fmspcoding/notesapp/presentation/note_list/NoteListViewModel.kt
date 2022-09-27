@@ -2,6 +2,7 @@ package com.fmspcoding.notesapp.presentation.note_list
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmspcoding.notesapp.core.util.Resource
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
-    private val getNotesUseCase: GetNotesUseCase
+    private val getNotesUseCase: GetNotesUseCase,
+    savedStateHandle: SavedStateHandle
 ): ViewModel() {
 
     private val _state = mutableStateOf(NoteListState())

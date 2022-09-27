@@ -81,8 +81,7 @@ class NoteDetailViewModel @Inject constructor(
                     _state.value = NoteDetailState(isLoading = true)
                 }
                 is Resource.Success ->  {
-                    println("Aqui2")
-                    _state.value = NoteDetailState(isLoading = false)
+                    _state.value = NoteDetailState(isLoading = false, isSaved = true)
                 }
                 is Resource.Error -> {
                     _state.value = NoteDetailState(
