@@ -23,7 +23,9 @@ object NoteModule {
     @Singleton
     fun provideNoteDatabase(app: Application): NoteDatabase {
         return Room.databaseBuilder(
-            app, NoteDatabase::class.java, "word_db"
+            app,
+            NoteDatabase::class.java,
+            NoteDatabase.DATABASE_NAME
         ).addTypeConverter(Converters(GsonParser(Gson())))
             .build()
     }
@@ -38,32 +40,13 @@ object NoteModule {
 
     @Provides
     @Singleton
-    fun provideGetNotesUseCase(repository: NoteRepository): GetNotesUseCase {
-        return GetNotesUseCase(repository)
+    fun provideNoteUseCases(repository: NoteRepository): NoteUseCases {
+        return NoteUseCases(
+            getNotesUseCase = GetNotesUseCase(repository),
+            getNoteUseCase = GetNoteUseCase(repository),
+            insertNoteUseCase = InsertNoteUseCase(repository),
+            deleteNoteUseCase = DeleteNoteUseCase(repository),
+            deleteNotesUseCase = DeleteNotesUseCase(repository)
+        )
     }
-
-    @Provides
-    @Singleton
-    fun provideGetNoteUseCase(repository: NoteRepository): GetNoteUseCase {
-        return GetNoteUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideInsertNoteUseCase(repository: NoteRepository): InsertNoteUseCase {
-        return InsertNoteUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideDeleteNoteUseCase(repository: NoteRepository): DeleteNoteUseCase {
-        return DeleteNoteUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUpdateNoteUseCase(repository: NoteRepository): UpdateNoteUseCase {
-        return UpdateNoteUseCase(repository)
-    }
-
 }

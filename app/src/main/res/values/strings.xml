@@ -2,4 +2,9 @@
     <string name="app_name">NotesAPP</string>
     <string name="save">Save</string>
     <string name="back_icon">Back Icon</string>
+    <string name="note_deleted">Note deleted</string>
+    <string name="notes_deleted">Notes deleted</string>
+    <string name="could_not_save_note">Couldn\'t save note</string>
+    <string name="could_not_delete_note">Couldn\'t delete note</string>
+    <string name="undo">Undo</string>
 </resources>

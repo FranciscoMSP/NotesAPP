@@ -32,13 +32,13 @@ class MainActivity : AppCompatActivity() {
                         composable(
                             route = Screen.NoteListScreen.route
                         ) {
-                            NoteListScreen(navController)
+                            NoteListScreen(navController = navController)
                         }
                         composable(
                             route = Screen.NoteDetailScreen.route + "/{noteId}",
                             arguments = listOf(navArgument("noteId") { type = NavType.IntType })
                         ) {
-                            NoteDetailScreen(navController)
+                            NoteDetailScreen(navController = navController)
                         }
                     }
                 }

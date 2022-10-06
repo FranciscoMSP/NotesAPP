@@ -1,15 +1,17 @@
 package com.fmspcoding.notesapp.domain.model
 
-import com.fmspcoding.notesapp.data.local.entity.NoteEntity
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity
 data class Note(
-    val id: Int = 0,
-    val title: String = "",
-    val description: String = "",
-    val checkItems: List<CheckItem> = emptyList()
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val title: String,
+    val description: String,
+    val checkItems: List<CheckItem>
 ) {
-    fun toNoteEntity(): NoteEntity {
-        return NoteEntity(
+    fun toNoteItem(): NoteItem {
+        return NoteItem(
             id = id,
             title = title,
             description = description,
