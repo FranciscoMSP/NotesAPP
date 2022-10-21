@@ -1,5 +1,6 @@
 package com.fmspcoding.notesapp.presentation.note_list
 
+import android.app.Application
 import android.content.res.Resources
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.core.util.Resource
+import com.fmspcoding.notesapp.core.util.loadImageFromInternalStorage
 import com.fmspcoding.notesapp.domain.model.CheckItem
 import com.fmspcoding.notesapp.domain.model.Note
 import com.fmspcoding.notesapp.domain.model.NoteItem
@@ -21,12 +23,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import javax.inject.Inject
 
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
-    private val noteUseCases: NoteUseCases
+    private val noteUseCases: NoteUseCases,
+    private val application: Application
 ) : ViewModel() {
 
     private val _state = mutableStateOf(NoteListState())
@@ -50,7 +54,7 @@ class NoteListViewModel @Inject constructor(
     }
 
     fun onEvent(event: NoteListEvent) {
-        when(event) {
+        when (event) {
             NoteListEvent.DeleteNotes -> {
                 val listIds = _noteList.filter { it.selected }.map { it.id }
                 val listNotes = state.value.notes.filter { it.id in listIds }
@@ -64,11 +68,11 @@ class NoteListViewModel @Inject constructor(
                     selected = !event.currentValue
                 )
 
-                if(!event.currentValue) _countSelected.value++ else _countSelected.value--
+                if (!event.currentValue) _countSelected.value++ else _countSelected.value--
             }
             NoteListEvent.CancelDelete -> {
                 for (i in 0 until _noteList.size) {
-                    if(_noteList[i].selected) {
+                    if (_noteList[i].selected) {
                         _noteList[i] = noteList[i].copy(selected = false)
                     }
                 }
@@ -85,6 +89,7 @@ class NoteListViewModel @Inject constructor(
         getNotesJob = noteUseCases.getNotesUseCase()
             .onEach { notes ->
                 saveNewList(notes)
+                getDrawings()
             }
             .launchIn(viewModelScope)
     }
@@ -99,18 +104,19 @@ class NoteListViewModel @Inject constructor(
 
     private fun insertNotes(list: List<Note>) {
         noteUseCases.insertNoteUseCase(*list.map { it }.toTypedArray()).onEach { result ->
-            when(result) {
+            when (result) {
                 is Resource.Loading -> {
                     _state.value = _state.value.copy(isLoading = true)
                 }
-                is Resource.Success ->  {
+                is Resource.Success -> {
                     _state.value = _state.value.copy(isLoading = false)
                 }
                 is Resource.Error -> {
                     _state.value = state.value.copy(isLoading = false)
                     _eventFlow.emit(
                         UiEvent.ShowSnackbar(
-                            message = result.message ?: Resources.getSystem().getString(R.string.could_not_save_note)
+                            message = result.message ?: Resources.getSystem()
+                                .getString(R.string.could_not_save_note)
                         )
                     )
                 }
@@ -120,11 +126,11 @@ class NoteListViewModel @Inject constructor(
 
     private fun deleteNotes(idList: List<Int>) {
         noteUseCases.deleteNotesUseCase(idList).onEach { result ->
-            when(result) {
+            when (result) {
                 is Resource.Loading -> {
                     _state.value = _state.value.copy(isLoading = true)
                 }
-                is Resource.Success ->  {
+                is Resource.Success -> {
                     _state.value = _state.value.copy(isLoading = false)
                     _eventFlow.emit(
                         UiEvent.ShowSnackbarAction(
@@ -137,7 +143,8 @@ class NoteListViewModel @Inject constructor(
                 is Resource.Error -> {
                     _eventFlow.emit(
                         UiEvent.ShowSnackbar(
-                            message = result.message ?: Resources.getSystem().getString(R.string.could_not_delete_note)
+                            message = result.message ?: Resources.getSystem()
+                                .getString(R.string.could_not_delete_note)
                         )
                     )
                 }
@@ -145,8 +152,24 @@ class NoteListViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    private suspend fun getDrawings() {
+        for (note in _noteList) {
+            if (note.drawName.isNotEmpty()) {
+                val storageImage =
+                    loadImageFromInternalStorage(note.drawName, application.applicationContext)
+                if (storageImage.name.isNotEmpty()) {
+                    note.drawBitMap = storageImage.bitmap
+                }
+            }
+        }
+    }
+
     sealed class UiEvent {
-        data class ShowSnackbar(val message: String): UiEvent()
-        data class ShowSnackbarAction(val message: String, val actionText: String, val onClickAction: () -> Unit): UiEvent()
+        data class ShowSnackbar(val message: String) : UiEvent()
+        data class ShowSnackbarAction(
+            val message: String,
+            val actionText: String,
+            val onClickAction: () -> Unit
+        ) : UiEvent()
     }
 }

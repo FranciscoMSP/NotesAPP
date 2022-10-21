@@ -5,15 +5,19 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
+import com.fmspcoding.notesapp.presentation.ui.LocalSpacing
+import com.fmspcoding.notesapp.presentation.ui.Spacing
 
 private val DarkColorPalette = darkColors(
     primary = Purple,
     primaryVariant = Blue,
     secondary = Teal,
     background = Black,
-    surface = Black
+    surface = Black,
+ //   onBackground = TextWhite
 )
 
 private val LightColorPalette = lightColors(
@@ -41,10 +45,12 @@ fun NotesTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable(
         LightColorPalette
     }
 
-    MaterialTheme(
-        colors = colors,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalSpacing provides Spacing()) {
+        MaterialTheme(
+            colors = colors,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

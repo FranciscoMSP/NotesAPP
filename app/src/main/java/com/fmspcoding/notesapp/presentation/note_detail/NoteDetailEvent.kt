@@ -8,6 +8,8 @@ sealed class NoteDetailEvent {
     data class EnteredItemListText(val value: String, val index: Int): NoteDetailEvent()
     data class CheckedItem(val value: Boolean, val index: Int): NoteDetailEvent()
     data class DeleteItem(val index: Int): NoteDetailEvent()
+    data class DetailItemClick(val noteMode: NoteDetailMode): NoteDetailEvent()
+    object OpenDetailMenu: NoteDetailEvent()
     object AddCheckList: NoteDetailEvent()
     object AddItemToList: NoteDetailEvent()
     object DeleteNote: NoteDetailEvent()

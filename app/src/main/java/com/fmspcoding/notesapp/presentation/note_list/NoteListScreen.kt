@@ -5,34 +5,25 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.fmspcoding.notesapp.presentation.Screen
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailEvent
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailViewModel
 import com.fmspcoding.notesapp.presentation.note_list.components.NoteListItem
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -46,7 +37,7 @@ fun NoteListScreen(
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
-            when(event) {
+            when (event) {
                 is NoteListViewModel.UiEvent.ShowSnackbar -> {
                     scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message
@@ -57,7 +48,7 @@ fun NoteListScreen(
                         message = event.message,
                         actionLabel = event.actionText
                     )
-                    if(result == SnackbarResult.ActionPerformed) {
+                    if (result == SnackbarResult.ActionPerformed) {
                         event.onClickAction()
                     }
                 }
@@ -83,18 +74,22 @@ fun NoteListScreen(
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(it)
+        ) {
             Column {
                 AnimatedVisibility(
                     visible = countSelected > 0,
                     enter = fadeIn() + slideInVertically(),
                     exit = fadeOut() + slideOutVertically()
                 ) {
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .background(color = MaterialTheme.colors.primary)
-                        .padding(16.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .background(color = MaterialTheme.colors.primary)
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -152,13 +147,25 @@ fun NoteListScreen(
                                     modifier = Modifier
                                         .combinedClickable(
                                             onClick = {
-                                                if(countSelected > 0) {
-                                                    viewModel.onEvent(NoteListEvent.SelectItem(note.selected, index))
+                                                if (countSelected > 0) {
+                                                    viewModel.onEvent(
+                                                        NoteListEvent.SelectItem(
+                                                            note.selected,
+                                                            index
+                                                        )
+                                                    )
                                                 } else {
                                                     navController.navigate(Screen.NoteDetailScreen.route + "/${note.id}")
                                                 }
                                             },
-                                            onLongClick = { viewModel.onEvent(NoteListEvent.SelectItem(note.selected, index)) }
+                                            onLongClick = {
+                                                viewModel.onEvent(
+                                                    NoteListEvent.SelectItem(
+                                                        note.selected,
+                                                        index
+                                                    )
+                                                )
+                                            }
                                         )
                                 )
                             }

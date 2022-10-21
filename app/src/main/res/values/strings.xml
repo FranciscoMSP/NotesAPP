@@ -7,4 +7,24 @@
     <string name="could_not_save_note">Couldn\'t save note</string>
     <string name="could_not_delete_note">Couldn\'t delete note</string>
     <string name="undo">Undo</string>
+    <string name="note">Note</string>
+
+    <!-- NoteDetailScreen -->
+    <string name="title">Title</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_note">Delete Note</string>
+    <string name="delete_current_note_question">Do you want to delete current note?</string>
+    <string name="add_checkbox">Add CheckBox</string>
+    <string name="open_detail_menu">Open Detail Menu</string>
+    <string name="check_list">Check List</string>
+    <string name="draw">Draw</string>
+    <string name="add_note">Add Note</string>
+    <string name="add_item_to_list">Add Item to list</string>
+
+    <!-- NoteDrawScreen -->
+    <string name="redo">Redo</string>
+    <string name="color_picker">Color Picker</string>
+    <string name="stroke_picker">Stroke Picker</string>
+    <string name="color_circle">Color Circle</string>
 </resources>
