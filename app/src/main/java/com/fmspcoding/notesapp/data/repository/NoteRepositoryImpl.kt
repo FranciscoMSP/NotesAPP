@@ -27,12 +27,12 @@ class NoteRepositoryImpl(
         }
     }
 
-    override fun insertNote(vararg note: Note): Flow<Resource<Unit>> = flow {
+    override fun insertNote(vararg note: Note): Flow<Resource<List<Long>>> = flow {
         emit(Resource.Loading())
 
         try {
-            dao.insertNote(*note)
-            emit(Resource.Success(Unit))
+            val listIds = dao.insertNote(*note)
+            emit(Resource.Success(listIds))
         } catch (e: Exception) {
             emit(Resource.Error(
                 message = "An error occurred."

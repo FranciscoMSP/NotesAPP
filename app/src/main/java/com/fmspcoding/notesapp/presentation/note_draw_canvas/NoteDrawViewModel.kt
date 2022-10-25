@@ -1,7 +1,6 @@
 package com.fmspcoding.notesapp.presentation.note_draw_canvas
 
 import android.app.Application
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -11,15 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.fmspcoding.notesapp.core.Constants
 import com.fmspcoding.notesapp.core.util.Resource
 import com.fmspcoding.notesapp.core.util.generateRandomName
+import com.fmspcoding.notesapp.core.util.loadImageFromInternalStorage
 import com.fmspcoding.notesapp.core.util.saveImageToIntervalStorage
 import com.fmspcoding.notesapp.domain.model.Note
 import com.fmspcoding.notesapp.domain.use_case.NoteUseCases
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailMode
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailState
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailViewModel
 import com.kpstv.compose.kapture.ScreenshotController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
@@ -35,13 +31,16 @@ class NoteDrawViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val _drawBitMap = mutableStateOf(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
+    val drawBitMap: State<Bitmap> = _drawBitMap
+
     private val _state = mutableStateOf(NoteDrawState())
     val state: State<NoteDrawState> = _state
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    var currentNoteId = 0
+    private var currentNoteId = 0
 
     init {
         savedStateHandle.get<Int>(Constants.PARAM_NOTE_ID)?.let { noteId ->
@@ -112,7 +111,15 @@ class NoteDrawViewModel @Inject constructor(
                 }
                 is Resource.Success ->  {
                     _state.value = NoteDrawState(isLoading = false)
-                    _eventFlow.emit(UiEvent.SaveNote(imageName))
+
+                    val listIds: List<Long>? = result.data
+
+                    var newId = 0L
+                    if(listIds != null && listIds.isNotEmpty()) {
+                        newId = listIds[0]
+                    }
+
+                    _eventFlow.emit(UiEvent.SaveNote(newId))
                 }
                 is Resource.Error -> {
                     _state.value = NoteDrawState(
@@ -129,9 +136,18 @@ class NoteDrawViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    private fun loadDraw(drawName: String) {
+        viewModelScope.launch {
+            val storageImage = loadImageFromInternalStorage(drawName, application.applicationContext)
+            if(storageImage.name.isNotEmpty()) {
+                _drawBitMap.value = storageImage.bitmap
+            }
+        }
+    }
+
     sealed class UiEvent {
         data class ShowSnackbar(val message: String): UiEvent()
-        data class SaveNote(val drawName: String): UiEvent()
+        data class SaveNote(val id: Long): UiEvent()
         object GoBack: UiEvent()
     }
 

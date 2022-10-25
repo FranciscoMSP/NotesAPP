@@ -15,12 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.presentation.Screen
 import com.fmspcoding.notesapp.presentation.note_list.components.NoteListItem
 import kotlinx.coroutines.flow.collectLatest
@@ -46,10 +47,13 @@ fun NoteListScreen(
                 is NoteListViewModel.UiEvent.ShowSnackbarAction -> {
                     val result = scaffoldState.snackbarHostState.showSnackbar(
                         message = event.message,
-                        actionLabel = event.actionText
+                        actionLabel = event.actionText,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         event.onClickAction()
+                    }
+                    if (result == SnackbarResult.Dismissed) {
+                        viewModel.deleteDrawings()
                     }
                 }
             }
@@ -66,7 +70,7 @@ fun NoteListScreen(
                     }
                 },
                 backgroundColor = MaterialTheme.colors.primary,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colors.background,
                 elevation = FloatingActionButtonDefaults.elevation(8.dp),
 
                 ) {
@@ -100,38 +104,31 @@ fun NoteListScreen(
                             IconButton(onClick = {
                                 viewModel.onEvent(NoteListEvent.CancelDelete)
                             }) {
-                                Icon(Icons.Filled.Close, "Close Delete Menu")
+                                Icon(
+                                    Icons.Filled.Close,
+                                    stringResource(id = R.string.close_delete_menu),
+                                    tint = MaterialTheme.colors.background
+                                )
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = countSelected.toString(),
                                 style = MaterialTheme.typography.body1,
-                                fontSize = 20.sp
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colors.background
                             )
                         }
                         IconButton(onClick = {
                             viewModel.onEvent(NoteListEvent.DeleteNotes)
                         }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Delete Note")
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = stringResource(id = R.string.delete_note),
+                                tint = MaterialTheme.colors.background
+                            )
                         }
                     }
                 }
-
-//                LazyVerticalGrid(
-//                    cells = GridCells.Fixed(2),
-//                    verticalArrangement = Arrangement.spacedBy(8.dp),
-//                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-//                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
-//                    content = {
-//                        items(state.notes) { note ->
-//                            NoteListItem(
-//                                note = note,
-//                                onItemClick = {
-//                                    navController.navigate(Screen.NoteDetailScreen.route + "/${note.id}")
-//                                },
-//                            )
-//                        }
-//                })
 
                 LazyColumn {
                     item {

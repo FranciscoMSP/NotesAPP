@@ -2,26 +2,22 @@ package com.fmspcoding.notesapp.presentation.note_detail
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.provider.SyncStateContract
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.core.Constants
 import com.fmspcoding.notesapp.core.util.Resource
-import com.fmspcoding.notesapp.core.util.UiText
+import com.fmspcoding.notesapp.core.util.deleteImageFromInternalStorage
 import com.fmspcoding.notesapp.core.util.loadImageFromInternalStorage
 import com.fmspcoding.notesapp.domain.model.CheckItem
 import com.fmspcoding.notesapp.domain.model.DetailOption
 import com.fmspcoding.notesapp.domain.model.Note
-import com.fmspcoding.notesapp.domain.use_case.*
-import com.fmspcoding.notesapp.presentation.note_list.NoteListState
+import com.fmspcoding.notesapp.domain.use_case.NoteUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
@@ -58,12 +54,13 @@ class NoteDetailViewModel @Inject constructor(
     private val _detailOptions = mutableStateListOf<DetailOption>()
     val detailOptions: List<DetailOption> = _detailOptions
 
-    var currentNoteId: Int = 0
+    val currentNoteId = savedStateHandle.getStateFlow("currentNoteId", 0)
+    //var currentNoteId: Int = 0
 
     init {
         savedStateHandle.get<Int>(Constants.PARAM_NOTE_ID)?.let { noteId ->
             if(noteId > 0) {
-                currentNoteId = noteId
+                savedStateHandle["currentNoteId"] = noteId
                 getNote(noteId)
             }
         }
@@ -140,16 +137,21 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
+    fun setNewId(newId: Int) {
+        savedStateHandle["currentNoteId"] = newId
+    }
+
     fun getDetailList() {
         _detailOptions.clear()
-        _detailOptions.add(DetailOption(R.string.draw, R.drawable.ic_outline_brush_24, NoteDetailMode.DrawCanvas))
         if(_state.value.noteDetailMode != NoteDetailMode.CheckList) {
+            _detailOptions.add(DetailOption(R.string.draw, R.drawable.ic_outline_brush_24, NoteDetailMode.DrawCanvas))
+        }
+        if(_state.value.noteDetailMode == NoteDetailMode.Default) {
             _detailOptions.add(DetailOption(R.string.check_list, R.drawable.ic_outline_check_box_24, NoteDetailMode.CheckList))
-
         }
     }
 
-    private fun getNote(noteId: Int) {
+    fun getNote(noteId: Int) {
         noteUseCases.getNoteUseCase(noteId).onEach { result ->
             when(result) {
                 is Resource.Loading -> {
@@ -167,6 +169,7 @@ class NoteDetailViewModel @Inject constructor(
                     savedStateHandle["drawName"] = result.data.drawName
 
                     if(result.data.drawName.isNotEmpty()) {
+                        _state.value = _state.value.copy(noteDetailMode = NoteDetailMode.DrawCanvas)
                         loadDraw(result.data.drawName)
                     }
                 }
@@ -181,7 +184,7 @@ class NoteDetailViewModel @Inject constructor(
 
     private fun insertNote() {
         val note = Note(
-            id = currentNoteId,
+            id = currentNoteId.value,
             title = title.value,
             description = description.value,
             checkItems = checkList,
@@ -217,6 +220,9 @@ class NoteDetailViewModel @Inject constructor(
                 is Resource.Loading -> {}
                 is Resource.Success -> {
                     _eventFlow.emit(UiEvent.DeleteNote)
+                    if(note.drawName.isNotEmpty()) {
+                        deleteDraw(note.drawName)
+                    }
                 }
                 is Resource.Error -> {
                     _eventFlow.emit(
@@ -229,7 +235,7 @@ class NoteDetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun loadDraw(drawName: String, fromBackStack: Boolean = false) {
+    private fun loadDraw(drawName: String, fromBackStack: Boolean = false) {
         if(fromBackStack) {
             savedStateHandle["drawName"] = drawName
         }
@@ -242,8 +248,8 @@ class NoteDetailViewModel @Inject constructor(
         }
     }
 
-    fun showDrawName(name: String) {
-        println("Desenho $name")
+    private fun deleteDraw(drawName: String) {
+        deleteImageFromInternalStorage(drawName, application.applicationContext)
     }
 
     sealed class UiEvent {

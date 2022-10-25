@@ -9,6 +9,9 @@
     <string name="undo">Undo</string>
     <string name="note">Note</string>
 
+    <!-- NoteListScreen -->
+    <string name="close_delete_menu">Close Delete Menu</string>
+
     <!-- NoteDetailScreen -->
     <string name="title">Title</string>
     <string name="ok">OK</string>

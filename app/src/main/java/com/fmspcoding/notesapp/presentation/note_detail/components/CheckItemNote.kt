@@ -1,6 +1,7 @@
 package com.fmspcoding.notesapp.presentation.note_detail.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,7 +20,8 @@ fun CheckItemNote(
     onTextValueChange: (String) -> Unit,
     checked: Boolean,
     onChecked: (Boolean) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onDone: () -> Unit
 ) {
     Row(
         modifier = modifier,
@@ -37,6 +39,9 @@ fun CheckItemNote(
             onValueChange = { onTextValueChange(it) },
             textStyle = MaterialTheme.typography.body1,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { onDone() }
+            ),
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,

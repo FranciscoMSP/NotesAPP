@@ -1,7 +1,7 @@
 package com.fmspcoding.notesapp.presentation.note_detail
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,14 +38,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun NoteDetailScreen(
     navController: NavController,
-    drawNameFromStack: String,
+    newIdFromStack: Long,
     viewModel: NoteDetailViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
     val scaffoldState = rememberScaffoldState()
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
-        confirmStateChange = { it != ModalBottomSheetValue.HalfExpanded }
+        //confirmStateChange = { it != ModalBottomSheetValue.HalfExpanded }
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -54,6 +53,7 @@ fun NoteDetailScreen(
     val title by viewModel.title.collectAsState()
     val description by viewModel.description.collectAsState()
     val drawName by viewModel.drawName.collectAsState()
+    val currentNoteId by viewModel.currentNoteId.collectAsState()
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -74,16 +74,20 @@ fun NoteDetailScreen(
                     sheetState.show()
                 }
                 NoteDetailViewModel.UiEvent.GoToDrawScreen -> {
-                    navController.navigate(Screen.NoteDrawScreen.route + "/${viewModel.currentNoteId}")
+                    navController.navigate(Screen.NoteDrawScreen.route + "/${currentNoteId}")
                 }
             }
         }
     }
-    
-    LaunchedEffect(key1 = drawNameFromStack) {
-        if(drawNameFromStack.isNotEmpty()) {
-            viewModel.loadDraw(drawNameFromStack, true)
-            viewModel.showDrawName(drawNameFromStack)
+
+    LaunchedEffect(key1 = newIdFromStack) {
+//        if(drawNameFromStack.isNotEmpty()) {
+//            viewModel.loadDraw(drawNameFromStack, true)
+//            //viewModel.showDrawName(drawNameFromStack)
+//        }
+        if (newIdFromStack > 0L) {
+            viewModel.setNewId(newIdFromStack.toInt())
+            viewModel.getNote(newIdFromStack.toInt())
         }
     }
 
@@ -96,10 +100,10 @@ fun NoteDetailScreen(
             NoteDetailOptionsBottomSheet(
                 detailOptions = viewModel.detailOptions,
                 detailClick = {
-                    viewModel.onEvent(NoteDetailEvent.DetailItemClick(it))
                     coroutineScope.launch {
                         sheetState.hide()
                     }
+                    viewModel.onEvent(NoteDetailEvent.DetailItemClick(it))
                 }
             )
         },
@@ -142,7 +146,7 @@ fun NoteDetailScreen(
                         )
                     }
                     Spacer(Modifier.width(MaterialTheme.spacing.medium))
-                    if (viewModel.currentNoteId > 0) {
+                    if (currentNoteId > 0) {
                         IconButton(onClick = { viewModel.onEvent(NoteDetailEvent.DeleteNote) }) {
                             Icon(
                                 Icons.Filled.Delete,
@@ -154,90 +158,92 @@ fun NoteDetailScreen(
             },
             scaffoldState = scaffoldState,
         ) {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        //.verticalScroll(rememberScrollState())
                         .padding(MaterialTheme.spacing.medium)
                 ) {
-                    AnimatedVisibility(visible = drawName.isNotEmpty()) {
-                        Image(
-                            modifier = Modifier.fillMaxWidth(),
-                            bitmap = viewModel.drawBitMap.value.asImageBitmap(),
-                            contentDescription = stringResource(R.string.draw)
-                        )
-                    }
-
-
-                    TextField(
-                        value = title,
-                        onValueChange = {
-                            viewModel.onEvent(NoteDetailEvent.EnteredTitle(it))
-                        },
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.h5,
-                        placeholder = {
-                            Text(text = stringResource(id = R.string.title))
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        singleLine = true,
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                    )
-                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
-
-                    AnimatedVisibility(
-                        visible = state.noteDetailMode == NoteDetailMode.Default,
-                        enter = fadeIn(),
-                        exit = fadeOut()
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
                     ) {
+                        AnimatedVisibility(visible = drawName.isNotEmpty()) {
+                            Image(
+                                modifier = Modifier.fillMaxWidth(),
+                                bitmap = viewModel.drawBitMap.value.asImageBitmap(),
+                                contentDescription = stringResource(R.string.draw)
+                            )
+                        }
+
                         TextField(
-                            value = description,
+                            value = title,
                             onValueChange = {
-                                viewModel.onEvent(NoteDetailEvent.EnteredDescription(it))
+                                viewModel.onEvent(NoteDetailEvent.EnteredTitle(it))
                             },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(),
-                            textStyle = MaterialTheme.typography.body1,
+                                .fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.h5,
                             placeholder = {
-                                Text(text = stringResource(id = R.string.note))
+                                Text(text = stringResource(id = R.string.title))
                             },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            singleLine = true,
                             colors = TextFieldDefaults.textFieldColors(
                                 backgroundColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
-                            )
+                            ),
                         )
+                        Spacer(modifier = Modifier.height(MaterialTheme.spacing.small))
+
+                        AnimatedVisibility(
+                            visible = state.noteDetailMode != NoteDetailMode.CheckList,
+                        ) {
+                            TextField(
+                                value = description,
+                                onValueChange = {
+                                    viewModel.onEvent(NoteDetailEvent.EnteredDescription(it))
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(),
+                                textStyle = MaterialTheme.typography.body1,
+                                placeholder = {
+                                    Text(text = stringResource(id = R.string.note))
+                                },
+                                colors = TextFieldDefaults.textFieldColors(
+                                    backgroundColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                )
+                            )
+                        }
                     }
 
                     AnimatedVisibility(
                         visible = state.noteDetailMode == NoteDetailMode.CheckList,
-                        enter = fadeIn() + slideInVertically(),
-                        exit = fadeOut() + slideOutVertically()
                     ) {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
                             itemsIndexed(items = viewModel.checkList) { index, item ->
                                 CheckItemNote(
                                     text = item.text,
-                                    onTextValueChange = {
+                                    onTextValueChange = { text ->
                                         viewModel.onEvent(
                                             NoteDetailEvent.EnteredItemListText(
-                                                it,
+                                                text,
                                                 index
                                             )
                                         )
                                     },
                                     checked = item.isChecked,
-                                    onChecked = {
+                                    onChecked = { it ->
                                         viewModel.onEvent(
                                             NoteDetailEvent.CheckedItem(
                                                 it,
@@ -245,7 +251,9 @@ fun NoteDetailScreen(
                                             )
                                         )
                                     },
-                                    onDelete = { viewModel.onEvent(NoteDetailEvent.DeleteItem(index)) })
+                                    onDelete = { viewModel.onEvent(NoteDetailEvent.DeleteItem(index)) },
+                                    onDone = { viewModel.onEvent(NoteDetailEvent.AddItemToList) }
+                                )
                             }
                             item {
                                 Row(modifier = Modifier
@@ -267,7 +275,6 @@ fun NoteDetailScreen(
                                 }
                             }
                         }
-
                     }
                 }
 

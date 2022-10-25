@@ -5,26 +5,21 @@ import android.content.res.Resources
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.core.util.Resource
+import com.fmspcoding.notesapp.core.util.deleteImageFromInternalStorage
 import com.fmspcoding.notesapp.core.util.loadImageFromInternalStorage
-import com.fmspcoding.notesapp.domain.model.CheckItem
 import com.fmspcoding.notesapp.domain.model.Note
 import com.fmspcoding.notesapp.domain.model.NoteItem
 import com.fmspcoding.notesapp.domain.use_case.NoteUseCases
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailState
-import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
 import javax.inject.Inject
 
 @HiltViewModel
@@ -153,13 +148,29 @@ class NoteListViewModel @Inject constructor(
     }
 
     private suspend fun getDrawings() {
-        for (note in _noteList) {
-            if (note.drawName.isNotEmpty()) {
+//        for (note in _noteList) {
+//            if (note.drawName.isNotEmpty()) {
+//                val storageImage =
+//                    loadImageFromInternalStorage(note.drawName, application.applicationContext)
+//                if (storageImage.name.isNotEmpty()) {
+//                    note.drawBitMap = storageImage.bitmap
+//                }
+//            }
+//        }
+
+        for (i in _noteList.indices) {
+            if(_noteList[i].drawName.isNotEmpty()) {
                 val storageImage =
-                    loadImageFromInternalStorage(note.drawName, application.applicationContext)
-                if (storageImage.name.isNotEmpty()) {
-                    note.drawBitMap = storageImage.bitmap
-                }
+                    loadImageFromInternalStorage(_noteList[i].drawName, application.applicationContext)
+                _noteList[i] = _noteList[i].copy(drawBitMap = storageImage.bitmap)
+            }
+        }
+    }
+
+    fun deleteDrawings() {
+        for (note in recentlyDeletedNotes) {
+            if (note.drawName.isNotEmpty()) {
+                deleteImageFromInternalStorage(note.drawName, application.applicationContext)
             }
         }
     }

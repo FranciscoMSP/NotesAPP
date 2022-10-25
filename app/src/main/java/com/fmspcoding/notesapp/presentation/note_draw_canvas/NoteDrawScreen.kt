@@ -26,14 +26,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.fmspcoding.notesapp.presentation.note_draw_canvas.gesture.MotionEvent
+import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.presentation.note_detail.draw_canvas.gesture.dragMotionEvent
-import com.fmspcoding.notesapp.presentation.note_draw_canvas.model.PathProperties
 import com.fmspcoding.notesapp.presentation.note_draw_canvas.components.DrawOptionsMenu
 import com.fmspcoding.notesapp.presentation.note_draw_canvas.components.OptionItem
-import com.fmspcoding.notesapp.presentation.ui.theme.gradientColors
-import com.fmspcoding.notesapp.R
+import com.fmspcoding.notesapp.presentation.note_draw_canvas.gesture.MotionEvent
+import com.fmspcoding.notesapp.presentation.note_draw_canvas.model.PathProperties
 import com.fmspcoding.notesapp.presentation.ui.spacing
+import com.fmspcoding.notesapp.presentation.ui.theme.gradientColors
 import com.kpstv.compose.kapture.attachController
 import com.kpstv.compose.kapture.rememberScreenshotController
 import kotlinx.coroutines.flow.collectLatest
@@ -49,7 +49,7 @@ fun NoteDrawScreen(
     val pathsUndone = remember { mutableStateListOf<Pair<Path, PathProperties>>() }
 
     var motionEvent by remember { mutableStateOf(MotionEvent.Idle) }
-    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+    val drawMode by remember { mutableStateOf(DrawMode.Draw) }
 
     var currentPosition by remember { mutableStateOf(Offset.Unspecified) }
     var previousPosition by remember { mutableStateOf(Offset.Unspecified) }
@@ -59,17 +59,23 @@ fun NoteDrawScreen(
     var colorListVisibility by remember { mutableStateOf(false) }
     var currentColor by remember { mutableStateOf(Color.Black) }
 
+    var strokeSelectorVisibility by remember { mutableStateOf(false) }
+    var currentStroke by remember { mutableStateOf(10f) }
+
     val scaffoldState = rememberScaffoldState()
     val screenshotController = rememberScreenshotController()
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
-            when(event) {
+            when (event) {
                 NoteDrawViewModel.UiEvent.GoBack -> {
                     navController.navigateUp()
                 }
                 is NoteDrawViewModel.UiEvent.SaveNote -> {
-                    navController.previousBackStackEntry?.savedStateHandle?.set("drawName", event.drawName)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "newNoteId",
+                        event.id
+                    )
                     navController.navigateUp()
                 }
                 is NoteDrawViewModel.UiEvent.ShowSnackbar -> {
@@ -108,7 +114,7 @@ fun NoteDrawScreen(
             )
         },
         scaffoldState = scaffoldState
-    ) {
+    ) { it ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -204,11 +210,13 @@ fun NoteDrawScreen(
                     }
                 }
 
-                //drawContext.canvas.nativeCanvas.setBitmap()
-
                 with(drawContext.canvas.nativeCanvas) {
 
+                    //drawBitmap(viewModel.drawBitMap.value, 0f, 0f, null)
+
                     val checkPoint = saveLayer(null, null)
+
+                    //setBitmap(viewModel.drawBitMap.value)
 
                     paths.forEach {
 
@@ -271,7 +279,7 @@ fun NoteDrawScreen(
             }
             DrawOptionsMenu(
                 onColorClick = { colorListVisibility = !colorListVisibility },
-                onStrokeClick = { /*TODO*/ },
+                onStrokeClick = { strokeSelectorVisibility = !strokeSelectorVisibility },
                 onUndoClick = {
                     if (paths.isNotEmpty()) {
                         val lastItem = paths.last()
@@ -323,6 +331,24 @@ fun NoteDrawScreen(
                         }
                     }
                 }
+            }
+            AnimatedVisibility(visible = strokeSelectorVisibility) {
+                Slider(
+                    modifier = Modifier.background(MaterialTheme.colors.primary),
+                    value = currentStroke,
+                    onValueChange = { currentStroke = it },
+                    valueRange = 1f..20f,
+                    onValueChangeFinished = {
+                        // launch some business logic update with the state you hold
+                        // viewModel.updateSelectedSliderValue(sliderPosition)
+                        currentPathProperty.strokeWidth = currentStroke
+                    },
+                    //steps = 10,
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.White,
+                        activeTrackColor = Color.White
+                    )
+                )
             }
         }
     }

@@ -45,13 +45,13 @@ fun NoteDetailOptionsBottomSheet(
                 Image(
                     painter = painterResource(id = item.resId),
                     contentDescription = UiText.StringResource(item.textResId, "").asString(),
-                    colorFilter = ColorFilter.tint(color = MaterialTheme.colors.onBackground)
+                    colorFilter = ColorFilter.tint(color = MaterialTheme.colors.background)
                 )
                 Spacer(modifier = modifier.width(MaterialTheme.spacing.medium))
                 Text(
                     text = UiText.StringResource(item.textResId, "").asString(),
                     style = MaterialTheme.typography.body1,
-                    color = MaterialTheme.colors.onBackground,
+                    color = MaterialTheme.colors.background,
                     fontSize = 18.sp
                 )
             }

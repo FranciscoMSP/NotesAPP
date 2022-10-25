@@ -1,6 +1,5 @@
 package com.fmspcoding.notesapp.presentation
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,7 +13,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.fmspcoding.notesapp.R
 import com.fmspcoding.notesapp.core.Constants
 import com.fmspcoding.notesapp.presentation.note_detail.NoteDetailScreen
 import com.fmspcoding.notesapp.presentation.note_draw_canvas.NoteDrawScreen
@@ -49,12 +47,17 @@ class MainActivity : ComponentActivity() {
                             )
                         ) { backStackEntry ->
 
-                            val drawName: String by backStackEntry
+//                            val drawName: String by backStackEntry
+//                                .savedStateHandle
+//                                .getStateFlow(Constants.PARAM_DRAW_NAME, "")
+//                                .collectAsState()
+
+                            val newNoteId: Long by backStackEntry
                                 .savedStateHandle
-                                .getStateFlow(Constants.PARAM_DRAW_NAME, "")
+                                .getStateFlow(Constants.PARAM_NEW_NOTE_ID, 0L)
                                 .collectAsState()
 
-                            NoteDetailScreen(navController = navController, drawNameFromStack = drawName)
+                            NoteDetailScreen(navController = navController, newIdFromStack = newNoteId)
                         }
                         composable(
                             route = Screen.NoteDrawScreen.route + "/{noteId}",
