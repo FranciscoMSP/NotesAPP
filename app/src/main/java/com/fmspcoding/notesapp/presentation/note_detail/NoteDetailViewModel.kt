@@ -162,8 +162,12 @@ class NoteDetailViewModel @Inject constructor(
                         note = result.data,
                         noteDetailMode = if (result.data?.checkItems!!.isNotEmpty()) NoteDetailMode.CheckList else NoteDetailMode.Default
                     )
-                    savedStateHandle["title"] = _state.value.note!!.title
-                    savedStateHandle["description"] = _state.value.note!!.description
+                    if(title.value.isEmpty()) {
+                        savedStateHandle["title"] = _state.value.note!!.title
+                    }
+                    if(description.value.isEmpty()) {
+                        savedStateHandle["description"] = _state.value.note!!.description
+                    }
                     _checkList.addAll(result.data.checkItems)
 
                     savedStateHandle["drawName"] = result.data.drawName
